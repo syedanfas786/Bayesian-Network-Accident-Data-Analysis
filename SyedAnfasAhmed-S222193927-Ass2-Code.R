@@ -1,8 +1,3 @@
-install.packages("C:/Users/SYED ANFAS/AppData/Local/Temp/RtmpeUUyph/downloaded_packages/bnlearn_4.9.4.zip", repos = NULL, type = "win.binary")
-
-
-install.packages(c("gRain", "RBGL", "gRbase", "Rgraphviz"), dependencies = TRUE, repos = "https://cloud.r-project.org/", force = TRUE)
-
 install.packages("igraph")
 library(igraph)
 
@@ -44,7 +39,7 @@ weather_data <- read.csv("AIMSWaterTempData.csv", header = FALSE, col.names = c(
 
 
 #1.1
-# Plot the histogram of underwater temperature weather_data
+# Plotting the histogram of underwater temperature weather_data
 ggplot(weather_data, aes(x = Temperature)) +
   geom_histogram(binwidth = 0.1, fill = "red", color = "yellow", alpha = 0.7) +
   labs(title = "Histogram of Underwater Temperature weather_data",
@@ -52,28 +47,24 @@ ggplot(weather_data, aes(x = Temperature)) +
        y = "Frequency") +
   theme_minimal()
 
-#1.2
 
-# Assuming you've loaded the weather_data into a variable named weather_data
+# I've already loaded the weather_data into a variable named weather_data
 avg_temp <- mean(weather_data$Temperature)
 std_temp <- sd(weather_data$Temperature)
 
-# Create a sequence of temperatures for plotting the Gaussian model
+# Creating a sequence of temperatures for plotting the Gaussian model
 temperature_range <- seq(from = avg_temp - 4 * std_temp, to = avg_temp + 4 * std_temp, length.out = 1000)
-# Calculate the density of the normal distribution at these points
+# Calculating the density of the normal distribution at these points
 density_values <- dnorm(temperature_range, mean = avg_temp, sd = std_temp)
 
-# Plot the histogram with the density plot
+# Plotting the histogram with the density plot
 hist(weather_data$Temperature, breaks = 50, probability = TRUE, col = 'red', main = "Temperature Distribution with Gaussian Fit", xlab = "Temperature (°C)", ylab = "Density")
 lines(temperature_range, density_values, col = "black", lwd = 2)
 #################################
 
-
-#1.3
-# Assuming 'weather_data' contains your temperature weather_data
 temperature <- weather_data[[1]]  # Extract temperature weather_data
 
-# Check if temperature weather_data is valid
+# Checking if temperature weather_data is valid
 if (length(temperature) > 0 && all(!is.na(temperature))) {
   # Fit a mixture of Gaussians model with 3 components
   model <- Mclust(temperature, G = 3)
@@ -87,23 +78,23 @@ if (length(temperature) > 0 && all(!is.na(temperature))) {
   variances <- parameters$variance$sigmasq
   weights <- parameters$pro
   
-  # Print the parameters
+  # Printing the parameters
   cat("Mixing Coefficients (weights):", weights, "\n")
   cat("Means (µ):", means, "\n")
   cat("Standard Deviations (σ):", sqrt(variances), "\n")
   
-  # Create a sequence of temperature values for plotting the densities
+  # Creating a sequence of temperature values for plotting the densities
   temp_seq <- seq(min(temperature), max(temperature), length.out = 1000)
   
-  # Calculate the densities for each Gaussian component
+  # Calculating the densities for each Gaussian component
   densities <- sapply(1:length(weights), function(i) {
     dnorm(temp_seq, mean = means[i], sd = sqrt(variances[i])) * weights[i]
   })
   
-  # Calculate the total density as the sum of individual densities
+  # Calculating the total density as the sum of individual densities
   total_density <- rowSums(densities)
   
-  # Create a weather_data frame for plotting
+  # Creating a weather_data frame for plotting
   plot_weather_data <- weather_data.frame(
     Temperature = temp_seq,
     Combined = total_density,
@@ -112,7 +103,7 @@ if (length(temperature) > 0 && all(!is.na(temperature))) {
     Component3 = densities[, 3]
   )
   
-  # Plot the histogram and Gaussian densities
+  # Plotting the histogram and Gaussian densities
   ggplot() +
     geom_histogram(aes(x = temperature, y = ..density..), binwidth = 0.1, fill = "grey", alpha = 0.4) +
     geom_line(weather_data = plot_weather_data, aes(x = Temperature, y = Combined, color = "Combined"), size = 1.2) +
@@ -128,16 +119,16 @@ if (length(temperature) > 0 && all(!is.na(temperature))) {
 }
 
 #1.4
-# Extract log-likelihood values from the model
+# Extracting log-likelihood values from the model
 log_likelihood_values <- model$loglik
 
-# Create a weather_data frame for plotting
+# Creating a weather_data frame for plotting
 likelihood_weather_data <- weather_data.frame(Step = 1:length(log_likelihood_values), LogLikelihood = log_likelihood_values)
 
-# Identify the maximum log-likelihood value
+# Identifying the maximum log-likelihood value
 max_likelihood <- likelihood_weather_data[which.max(likelihood_weather_data$LogLikelihood), ]
 
-# Generate the plot
+# Generating the plot
 ggplot(likelihood_weather_data, aes(x = Step, y = LogLikelihood)) +
   geom_line(color = "yellow") +
   geom_point(color = "blue") +
@@ -148,8 +139,8 @@ ggplot(likelihood_weather_data, aes(x = Step, y = LogLikelihood)) +
        y = "Log Likelihood") +
   theme_minimal()
 
-#2 Answer ##################
-# Define states for each node
+
+# Defining states for each node
 node_options <- list(
   Temperature = c("low", "medium", "high"),
   Location = c("urban", "rural"),
@@ -161,7 +152,7 @@ node_options <- list(
   Severity = c("minor", "moderate", "major")
 )
 
-# Define the network structure
+# Defining the network structure
 nodes_list <- c("Tonnage", "Location", "HasAccident", "Weather", "AirQuality", "AccidentType", "Visibility", "Severity")
 arcs_matrix <- matrix(c("", "AirQuality",
                         "Location", "AirQuality",
@@ -177,7 +168,7 @@ network <- graph_from_edgelist(arcs_matrix, directed = TRUE)
 calculate_parameters <- function(node, network, node_options) {
   parents_nodes <- neighbors(network, node, mode = "in")
   num_states_node <- length(node_options[[node]])
-  # Check if there are parent nodes and calculate the product of their states
+  # Checking if there are parent nodes and calculate the product of their states
   if (length(parents_nodes) > 0) {
     product_parent_states <- prod(sapply(parents_nodes, function(p) length(node_options[[p]])))
   } else {
@@ -186,21 +177,16 @@ calculate_parameters <- function(node, network, node_options) {
   (num_states_node - 1) * product_parent_states
 }
 
-# Calculate total parameters required for the network
+# Calculating total parameters required for the network
 total_parameters <- sum(sapply(nodes_list, calculate_parameters, network = network, node_options = node_options))
 
-# Print total parameters
+# Printing total parameters
 cat("Total parameters:", total_parameters, "\n")
-
-
-
-
-#2.3 Code
 
 # Setting seed for reproducibility
 set.seed(123)
 
-# Generating simulated binary data for each variable
+# Generatinging simulated binary data for each variable
 num_sam <- 1000  # Number of samples
 sim_data <- data.frame(
   Temp = sample(0:1, num_sam, replace = TRUE),
@@ -251,7 +237,7 @@ node_list <- c("Tonnage", "Length", "HumanFactors", "Weather", "KilowattPower", 
 # Create an empty graph for the Bayesian network
 bayesian_network <- empty.graph(node_list)
 
-# Define the arcs between nodes
+# Defining the arcs between nodes
 arcs_matrix <- matrix(c("Tonnage", "KilowattPower",
                         "HumanFactors", "AccidentType",
                         "Weather", "Visibility",
@@ -266,37 +252,34 @@ for (i in 1:nrow(arcs_matrix)) {
   bayesian_network <- set.arc(bayesian_network, from = arcs_matrix[i, "from"], to = arcs_matrix[i, "to"])
 }
 
-# Plot the network to verify it visually
+# Ploting the network to verify it visually
 plot(bayesian_network, main = "Bayesian Network")
 
-#2.4B
-
-# Define the number of states for each variable
+# Defining the number of states for each variable
 states <- list(Tonnage = 3, Location = 2, HasAccident = 2, Weather = 4, AccidentType = 2, AirQuality = 3, Visibility = 3, Severity = 3)
 
-# Calculate parameters for the original network
+# Calculating parameters for the original network
 original_params_AccidentType <- (states$AccidentType - 1) * (states$Tonnage * states$Location)
 original_total_params <- original_params_AccidentType  
 
-# Calculate parameters for the modified network
+# Calculating parameters for the modified network
 modified_params_AccidentType <- (states$AccidentType - 1) * states$Tonnage
 modified_total_params <- modified_params_AccidentType  
 
 # Compute the difference
 params_difference <- original_total_params - modified_total_params
 
-# Print the result
+# Printing the result
 print(paste("Change in the number of parameters:", params_difference))
 
-#2.6
 
-# Define the nodes for the Bayesian network
+# Defining the nodes for the Bayesian network
 network_nodes <- c("Tonnage", "Length", "HumanFactors", "Weather", "KilowattPower", "AccidentType", "Visibility", "Severity")
 
-# Create an empty graph with these nodes
+# Creating an empty graph with these nodes
 bayesian_network <- empty.graph(network_nodes)
 
-# Define the arcs as per the network diagram
+# Defining the arcs as per the network diagram
 network_arcs <- matrix(c("Tonnage", "KilowattPower",
                          "Length", "KilowattPower",
                          "HumanFactors", "AccidentType",
@@ -306,7 +289,7 @@ network_arcs <- matrix(c("Tonnage", "KilowattPower",
                          "AccidentType", "Severity",
                          "Visibility", "Severity"), byrow = TRUE, ncol = 2)
 
-# Set the arcs in the Bayesian network
+# Setting the arcs in the Bayesian network
 colnames(network_arcs) <- c("from", "to")
 for (i in 1:nrow(network_arcs)) {
   bayesian_network <- set.arc(bayesian_network, from = network_arcs[i, "from"], to = network_arcs[i, "to"])
@@ -323,19 +306,17 @@ independent_nodes <- sapply(nodes_to_check, function(node) {
 # Output the nodes that are conditionally independent of Tonnage given AccidentType and Visibility
 independent_nodes <- names(independent_nodes[independent_nodes == TRUE])
 
-# Print the results
+# Printing the results
 cat("Nodes conditionally independent of Tonnage given AccidentType and Visibility:\n")
 print(independent_nodes)
 
-#2.7
-
-# Define the nodes for the Bayesian network
+# Defining the nodes for the Bayesian network
 network_nodes <- c("Tonnage", "Length", "HumanFactors", "Weather", "KilowattPower", "AccidentType", "Visibility", "Severity")
 
-# Create an empty graph with these nodes
+# Creating an empty graph with these nodes
 bayesian_network <- empty.graph(network_nodes)
 
-# Define the arcs as per the network diagram
+# Defining the arcs as per the network diagram
 network_arcs <- matrix(c("Tonnage", "KilowattPower",
                          "Length", "KilowattPower",
                          "HumanFactors", "AccidentType",
@@ -345,7 +326,7 @@ network_arcs <- matrix(c("Tonnage", "KilowattPower",
                          "AccidentType", "Severity",
                          "Visibility", "Severity"), byrow = TRUE, ncol = 2)
 
-# Set the arcs in the Bayesian network
+# Setting the arcs in the Bayesian network
 colnames(network_arcs) <- c("from", "to")
 for (i in 1:nrow(network_arcs)) {
   bayesian_network <- set.arc(bayesian_network, from = network_arcs[i, "from"], to = network_arcs[i, "to"])
@@ -362,14 +343,13 @@ cat("d-separation test for Weather independent of KilowattPower given Severity:"
 test_b <- dsep(bayesian_network, x = "HumanFactors", y = "Visibility", z = c("KilowattPower", "AccidentType"))
 cat("d-separation test for HumanFactors independent of Visibility given KilowattPower and AccidentType:", test_b, "\n")
 
-#2.8(c)
 # Define the nodes for the Bayesian network
 network_nodes <- c("Tonnage", "Length", "HumanFactors", "Weather", "KilowattPower", "AccidentType", "Visibility", "Severity")
 
-# Create an empty graph with these nodes
+# Creating an empty graph with these nodes
 bayesian_network <- empty.graph(network_nodes)
 
-# Define the arcs as per the network diagram
+# Defining the arcs as per the network diagram
 network_arcs <- matrix(c("Tonnage", "KilowattPower",
                          "Length", "KilowattPower",
                          "HumanFactors", "AccidentType",
@@ -379,38 +359,35 @@ network_arcs <- matrix(c("Tonnage", "KilowattPower",
                          "AccidentType", "Severity",
                          "Visibility", "Severity"), byrow = TRUE, ncol = 2)
 
-# Set the arcs in the Bayesian network
+# Seting the arcs in the Bayesian network
 colnames(network_arcs) <- c("from", "to")
 for (i in 1:nrow(network_arcs)) {
   bayesian_network <- set.arc(bayesian_network, from = network_arcs[i, "from"], to = network_arcs[i, "to"])
 }
 
-# Find the Markov blanket of KilowattPower
+# Finding the Markov blanket of KilowattPower
 mb_k <- mb(bayesian_network, "KilowattPower")
 
 # Print the nodes in the Markov blanket of KilowattPower
 cat("Markov blanket of KilowattPower includes:", paste(mb_k, collapse = ", "), "\n")
 
-# Create a graphNEL object from the Bayesian network object
+# Creating a graphNEL object from the Bayesian network object
 graph <- as.graphNEL(bayesian_network)
 
-# Define node colors
+# Defining node colors
 node_colors <- rep("lightblue", length(network_nodes))
 names(node_colors) <- network_nodes
 node_colors[network_nodes %in% mb_k] <- "red"
 node_colors["KilowattPower"] <- "green"
 
-# Set node attributes for plotting
+# Setting node attributes for plotting
 nodeRenderInfo(graph) <- list(fill = node_colors)
 
 # Plot the Bayesian network with the Markov blanket of KilowattPower
 plot(graph, main = "Bayesian Network with Markov Blanket of KilowattPower")
 
 
-###############
-#3
-#3.3
-# Given data
+
 dataset <- data.frame(
   A = c(1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1),
   B = c(0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 1),
@@ -433,7 +410,7 @@ P_E0_given_A0_B1 <- 0.36 + 0.5 * beta_mle
 cat("P(E = 0 | A = 0, B = 1):", P_E0_given_A0_B1, "\n")
 
 
-#3.5.i)
+
 # Define the CPTs based on the provided values
 alpha_val <- 0.3
 beta_val <- 0.6
@@ -528,9 +505,8 @@ cat("Conditional probability P(C=2 | A=0, D=1, E=0):", conditional_C_given_ADE, 
 ##########################
 
 
-###############################
-#4.1
-# Load the alarm dataset
+
+# Loading the alarm dataset
 data("alarm")
 
 # Function to learn the network and plot it
@@ -569,7 +545,6 @@ scores <- data.frame(
 print(scores)
 
 
-#4.3.a
 # Use the full dataset
 full_data <- alarm
 
@@ -589,7 +564,7 @@ scores <- data.frame(
 print(scores)
 
 
-#4.3.b
+
 # Define the true network structure
 modelstring = paste0("[HIST|LVF][CVP|LVV][PCWP|LVV][HYP][LVV|HYP:LVF][LVF]",
                      "[STKV|HYP:LVF][ERLO][HRBP|ERLO:HR][HREK|ERCA:HR][ERCA]",
@@ -629,7 +604,7 @@ print(comparison_BIC)
 print("Comparison with BDe scoring method:")
 print(comparison_BDe)
 
-#4.3.c
+
 # Visualize the comparisons
 graphviz.compare(bn_full_BIC, true_dag, main = c("BIC Learned Network", "True Network"))
 graphviz.compare(bn_full_BDe, true_dag, main = c("BDe Learned Network", "True Network"))
@@ -641,15 +616,12 @@ fitted_bn <- bn.fit(bn_full_BIC, full_data)
 cpd_hr <- fitted_bn$HR
 print(cpd_hr)
 
-#4.3.d
+
 # Query the conditional probability P(HR = "HIGH" | BP = "LOW", PRSS = "NORMAL")
 query_result <- cpquery(fitted_bn, event = (HR == "HIGH"), evidence = (BP == "LOW" & PRSS == "NORMAL"))
 print(query_result)
 
-##################################
 
-
-#6Ans
 
 
 # Load the data
@@ -783,7 +755,7 @@ independence_test <- ci.test("Injury.Severity", "Speed.Limit", data = df)
 # Print the result
 print(independence_test)
 
-# Query 3: Find the Markov blanket of "Driver.Distracted.By"
+#  Finding the Markov blanket of "Driver.Distracted.By"
 markov_blanket <- mb(bn_fit, "Driver.Distracted.By")
 print(markov_blanket)
 
